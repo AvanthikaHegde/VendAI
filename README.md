@@ -1,4 +1,4 @@
-# VendAI - agentic commerce on Razorpay (test mode)
+# VendAI - agentic commerce on Razorpay 
 
 A conversational shopping agent for a three-store marketplace. It asks what it
 does not know, remembers the answer, shortlists a few products, and turns your
