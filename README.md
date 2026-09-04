@@ -20,6 +20,10 @@ is the sole authority on whether money moves.
 There is no code path that reaches `razorpay_client.create_payment_link` without
 passing `gate.gate(order_id, stage="payment")` first.
 
+
+<img width="1235" height="1252" alt="image" src="https://github.com/user-attachments/assets/2d382ee4-f4e1-4503-bf98-282b22d98ed4" />
+
+
 ## How a conversation goes
 
 ```
