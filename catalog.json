@@ -1,0 +1,696 @@
+{
+  "merchant": "VendAI Marketplace",
+  "currency": "INR",
+  "products": [
+    {
+      "id": "P001",
+      "name": "Aurora W300 Wireless Gaming Headset",
+      "category": "headphones",
+      "price_paise": 279900,
+      "price_display": "₹2,799",
+      "currency": "INR",
+      "stock": 25,
+      "attributes": {
+        "wireless": true,
+        "low_latency": true,
+        "microphone": true,
+        "gaming": true,
+        "anc": false
+      },
+      "description": "Wireless gaming headset with a 2.4GHz low-latency mode, detachable boom mic and 40 hour battery.",
+      "store": "electronics"
+    },
+    {
+      "id": "P002",
+      "name": "Aurora W500 Pro Wireless Headset",
+      "category": "headphones",
+      "price_paise": 449900,
+      "price_display": "₹4,499",
+      "currency": "INR",
+      "stock": 12,
+      "attributes": {
+        "wireless": true,
+        "low_latency": true,
+        "microphone": true,
+        "gaming": true,
+        "anc": true
+      },
+      "description": "Flagship wireless gaming headset with active noise cancellation and dual wireless connection.",
+      "store": "electronics"
+    },
+    {
+      "id": "P003",
+      "name": "Nimbus C100 Wired Gaming Headset",
+      "category": "headphones",
+      "price_paise": 149900,
+      "price_display": "₹1,499",
+      "currency": "INR",
+      "stock": 30,
+      "attributes": {
+        "wireless": false,
+        "low_latency": true,
+        "microphone": true,
+        "gaming": true,
+        "anc": false
+      },
+      "description": "Budget wired gaming headset with a 3.5mm jack and an always-on noise filtering mic.",
+      "store": "electronics"
+    },
+    {
+      "id": "P004",
+      "name": "Halo Air Wireless Earbuds",
+      "category": "headphones",
+      "price_paise": 259900,
+      "price_display": "₹2,599",
+      "currency": "INR",
+      "stock": 40,
+      "attributes": {
+        "wireless": true,
+        "low_latency": false,
+        "microphone": true,
+        "gaming": false,
+        "anc": true
+      },
+      "description": "Everyday Bluetooth earbuds with noise cancellation, tuned for music and calls rather than gaming.",
+      "store": "electronics"
+    },
+    {
+      "id": "P005",
+      "name": "Studio One Over-Ear ANC Headphones",
+      "category": "headphones",
+      "price_paise": 899900,
+      "price_display": "₹8,999",
+      "currency": "INR",
+      "stock": 8,
+      "attributes": {
+        "wireless": true,
+        "low_latency": false,
+        "microphone": true,
+        "gaming": false,
+        "anc": true
+      },
+      "description": "Reference-tuned over-ear headphones with best-in-class active noise cancellation for travel and studio use.",
+      "store": "electronics"
+    },
+    {
+      "id": "P006",
+      "name": "Vertex TKL Mechanical Keyboard",
+      "category": "keyboards",
+      "price_paise": 349900,
+      "price_display": "₹3,499",
+      "currency": "INR",
+      "stock": 18,
+      "attributes": {
+        "wireless": false,
+        "mechanical": true,
+        "rgb": true,
+        "hot_swappable": true,
+        "gaming": true
+      },
+      "description": "Tenkeyless mechanical keyboard with hot-swappable linear switches and per-key RGB.",
+      "store": "electronics"
+    },
+    {
+      "id": "P007",
+      "name": "Vertex 65 Wireless Mechanical Keyboard",
+      "category": "keyboards",
+      "price_paise": 599900,
+      "price_display": "₹5,999",
+      "currency": "INR",
+      "stock": 10,
+      "attributes": {
+        "wireless": true,
+        "mechanical": true,
+        "rgb": true,
+        "hot_swappable": true,
+        "gaming": true
+      },
+      "description": "Compact 65% wireless mechanical keyboard with triple-mode connectivity and a gasket mount.",
+      "store": "electronics"
+    },
+    {
+      "id": "P008",
+      "name": "Basalt Membrane Keyboard",
+      "category": "keyboards",
+      "price_paise": 89900,
+      "price_display": "₹899",
+      "currency": "INR",
+      "stock": 50,
+      "attributes": {
+        "wireless": false,
+        "mechanical": false,
+        "rgb": false,
+        "hot_swappable": false,
+        "gaming": false
+      },
+      "description": "Quiet full-size membrane keyboard for everyday office typing.",
+      "store": "electronics"
+    },
+    {
+      "id": "P009",
+      "name": "Vertex Elite Optical Gaming Keyboard",
+      "category": "keyboards",
+      "price_paise": 479900,
+      "price_display": "₹4,799",
+      "currency": "INR",
+      "stock": 9,
+      "attributes": {
+        "wireless": false,
+        "mechanical": true,
+        "rgb": true,
+        "low_latency": true,
+        "gaming": true
+      },
+      "description": "Competition gaming keyboard with 8000Hz polling and optical switches for the fastest actuation in the range.",
+      "store": "electronics"
+    },
+    {
+      "id": "P010",
+      "name": "Dart 3 Lightweight Wireless Gaming Mouse",
+      "category": "mice",
+      "price_paise": 189900,
+      "price_display": "₹1,899",
+      "currency": "INR",
+      "stock": 22,
+      "attributes": {
+        "wireless": true,
+        "low_latency": true,
+        "rgb": false,
+        "gaming": true,
+        "lightweight": true
+      },
+      "description": "58g wireless gaming mouse with a 26K sensor and a 2.4GHz low-latency receiver.",
+      "store": "electronics"
+    },
+    {
+      "id": "P011",
+      "name": "Dart 3 Pro Wireless Gaming Mouse",
+      "category": "mice",
+      "price_paise": 299900,
+      "price_display": "₹2,999",
+      "currency": "INR",
+      "stock": 14,
+      "attributes": {
+        "wireless": true,
+        "low_latency": true,
+        "rgb": true,
+        "gaming": true,
+        "lightweight": true
+      },
+      "description": "Pro-tier wireless gaming mouse with 4000Hz polling, optical switches and onboard profiles.",
+      "store": "electronics"
+    },
+    {
+      "id": "P012",
+      "name": "Glide Silent Office Mouse",
+      "category": "mice",
+      "price_paise": 79900,
+      "price_display": "₹799",
+      "currency": "INR",
+      "stock": 60,
+      "attributes": {
+        "wireless": true,
+        "low_latency": false,
+        "rgb": false,
+        "gaming": false,
+        "silent": true
+      },
+      "description": "Silent-click Bluetooth mouse for quiet offices and long spreadsheet days.",
+      "store": "electronics"
+    },
+    {
+      "id": "P013",
+      "name": "Dart Wired Gaming Mouse",
+      "category": "mice",
+      "price_paise": 129900,
+      "price_display": "₹1,299",
+      "currency": "INR",
+      "stock": 0,
+      "attributes": {
+        "wireless": false,
+        "low_latency": true,
+        "rgb": true,
+        "gaming": true,
+        "lightweight": false
+      },
+      "description": "Entry-level wired gaming mouse with a braided cable. Currently out of stock.",
+      "store": "electronics"
+    },
+    {
+      "id": "P014",
+      "name": "Lumen 24 144Hz Gaming Monitor",
+      "category": "monitors",
+      "price_paise": 1299900,
+      "price_display": "₹12,999",
+      "currency": "INR",
+      "stock": 7,
+      "attributes": {
+        "refresh_hz": 144,
+        "size_inch": 24,
+        "resolution": "1080p",
+        "gaming": true
+      },
+      "description": "24 inch 1080p IPS gaming monitor at 144Hz with adaptive sync.",
+      "store": "electronics"
+    },
+    {
+      "id": "P015",
+      "name": "Lumen 27 165Hz QHD Gaming Monitor",
+      "category": "monitors",
+      "price_paise": 2299900,
+      "price_display": "₹22,999",
+      "currency": "INR",
+      "stock": 5,
+      "attributes": {
+        "refresh_hz": 165,
+        "size_inch": 27,
+        "resolution": "1440p",
+        "gaming": true
+      },
+      "description": "27 inch QHD gaming monitor at 165Hz with a 1ms response time.",
+      "store": "electronics"
+    },
+    {
+      "id": "P016",
+      "name": "Lumen 27 4K Creator Monitor",
+      "category": "monitors",
+      "price_paise": 3499900,
+      "price_display": "₹34,999",
+      "currency": "INR",
+      "stock": 4,
+      "attributes": {
+        "refresh_hz": 60,
+        "size_inch": 27,
+        "resolution": "4k",
+        "gaming": false
+      },
+      "description": "Colour-accurate 27 inch 4K monitor covering 99% DCI-P3 for photo and video work.",
+      "store": "electronics"
+    },
+    {
+      "id": "P017",
+      "name": "Nova 14 Ultrabook",
+      "category": "laptops",
+      "price_paise": 6999900,
+      "price_display": "₹69,999",
+      "currency": "INR",
+      "stock": 3,
+      "attributes": {
+        "size_inch": 14,
+        "ram_gb": 16,
+        "gaming": false,
+        "lightweight": true
+      },
+      "description": "1.2kg 14 inch ultrabook with 16GB RAM and a 16 hour battery for travel and study.",
+      "store": "electronics"
+    },
+    {
+      "id": "P018",
+      "name": "Nova 15 RTX Gaming Laptop",
+      "category": "laptops",
+      "price_paise": 10999900,
+      "price_display": "₹1,09,999",
+      "currency": "INR",
+      "stock": 2,
+      "attributes": {
+        "size_inch": 15,
+        "ram_gb": 32,
+        "gaming": true,
+        "lightweight": false
+      },
+      "description": "15 inch gaming laptop with a discrete RTX GPU, 32GB RAM and a 165Hz panel.",
+      "store": "electronics"
+    },
+    {
+      "id": "P019",
+      "name": "Terra XL Desk Mat",
+      "category": "accessories",
+      "price_paise": 99900,
+      "price_display": "₹999",
+      "currency": "INR",
+      "stock": 45,
+      "attributes": {
+        "size_inch": 36,
+        "washable": true,
+        "gaming": true
+      },
+      "description": "Extra large stitched-edge desk mat that covers keyboard and mouse together.",
+      "store": "electronics"
+    },
+    {
+      "id": "P020",
+      "name": "Flux 7-in-1 USB-C Hub",
+      "category": "accessories",
+      "price_paise": 149900,
+      "price_display": "₹1,499",
+      "currency": "INR",
+      "stock": 0,
+      "attributes": {
+        "ports": 7,
+        "hdmi": true,
+        "gaming": false
+      },
+      "description": "7-in-1 USB-C hub with HDMI, card reader and 100W pass-through charging. Currently out of stock.",
+      "store": "electronics"
+    },
+    {
+      "id": "F001",
+      "name": "Sprint Jr Running Shoes",
+      "store": "footwear",
+      "category": "footwear",
+      "price_paise": 149900,
+      "price_display": "₹1,499",
+      "currency": "INR",
+      "stock": 30,
+      "sizes": [
+        "UK 10",
+        "UK 11",
+        "UK 12",
+        "UK 13",
+        "UK 1",
+        "UK 2"
+      ],
+      "attributes": {
+        "kids": true,
+        "girls": true,
+        "running": true,
+        "lightweight": true,
+        "washable": true
+      },
+      "description": "Lightweight running shoes for kids with a breathable mesh upper and a washable insole."
+    },
+    {
+      "id": "F002",
+      "name": "Trail Kids Outdoor Sneakers",
+      "store": "footwear",
+      "category": "footwear",
+      "price_paise": 189900,
+      "price_display": "₹1,899",
+      "currency": "INR",
+      "stock": 18,
+      "sizes": [
+        "UK 10",
+        "UK 11",
+        "UK 12",
+        "UK 13",
+        "UK 1",
+        "UK 2"
+      ],
+      "attributes": {
+        "kids": true,
+        "girls": true,
+        "boys": true,
+        "running": true,
+        "waterproof": true
+      },
+      "description": "Grippy outdoor sneakers for kids, water resistant and built for playgrounds and trails."
+    },
+    {
+      "id": "F003",
+      "name": "Bloom Girls Casual Sneakers",
+      "store": "footwear",
+      "category": "footwear",
+      "price_paise": 129900,
+      "price_display": "₹1,299",
+      "currency": "INR",
+      "stock": 26,
+      "sizes": [
+        "UK 10",
+        "UK 11",
+        "UK 12",
+        "UK 13",
+        "UK 1",
+        "UK 2"
+      ],
+      "attributes": {
+        "kids": true,
+        "girls": true,
+        "casual": true,
+        "velcro": true,
+        "lightweight": true
+      },
+      "description": "Everyday casual sneakers for girls with velcro straps, no laces to tie."
+    },
+    {
+      "id": "F004",
+      "name": "Step School Shoes Black",
+      "store": "footwear",
+      "category": "footwear",
+      "price_paise": 99900,
+      "price_display": "₹999",
+      "currency": "INR",
+      "stock": 40,
+      "sizes": [
+        "UK 10",
+        "UK 11",
+        "UK 12",
+        "UK 13",
+        "UK 1",
+        "UK 2"
+      ],
+      "attributes": {
+        "kids": true,
+        "girls": true,
+        "boys": true,
+        "school": true,
+        "velcro": true
+      },
+      "description": "Black school shoes with velcro fastening and a scuff-resistant toe."
+    },
+    {
+      "id": "F005",
+      "name": "Aero Women Running Shoes",
+      "store": "footwear",
+      "category": "footwear",
+      "price_paise": 249900,
+      "price_display": "₹2,499",
+      "currency": "INR",
+      "stock": 14,
+      "sizes": [
+        "UK 3",
+        "UK 4",
+        "UK 5",
+        "UK 6",
+        "UK 7",
+        "UK 8"
+      ],
+      "attributes": {
+        "women": true,
+        "running": true,
+        "lightweight": true,
+        "cushioned": true
+      },
+      "description": "Cushioned road running shoes for women with a rocker sole for longer runs."
+    },
+    {
+      "id": "F006",
+      "name": "Glide Women Walking Shoes",
+      "store": "footwear",
+      "category": "footwear",
+      "price_paise": 199900,
+      "price_display": "₹1,999",
+      "currency": "INR",
+      "stock": 20,
+      "sizes": [
+        "UK 3",
+        "UK 4",
+        "UK 5",
+        "UK 6",
+        "UK 7",
+        "UK 8"
+      ],
+      "attributes": {
+        "women": true,
+        "walking": true,
+        "cushioned": true,
+        "casual": true
+      },
+      "description": "Slip-on walking shoes for women with memory foam footbed for all-day wear."
+    },
+    {
+      "id": "F007",
+      "name": "Court Men Everyday Sneakers",
+      "store": "footwear",
+      "category": "footwear",
+      "price_paise": 279900,
+      "price_display": "₹2,799",
+      "currency": "INR",
+      "stock": 16,
+      "sizes": [
+        "UK 6",
+        "UK 7",
+        "UK 8",
+        "UK 9",
+        "UK 10",
+        "UK 11"
+      ],
+      "attributes": {
+        "men": true,
+        "casual": true,
+        "cushioned": true
+      },
+      "description": "Clean court-style sneakers for men that work with jeans or chinos."
+    },
+    {
+      "id": "F008",
+      "name": "Splash Kids Sandals",
+      "store": "footwear",
+      "category": "footwear",
+      "price_paise": 79900,
+      "price_display": "₹799",
+      "currency": "INR",
+      "stock": 0,
+      "sizes": [
+        "UK 10",
+        "UK 11",
+        "UK 12",
+        "UK 13",
+        "UK 1",
+        "UK 2"
+      ],
+      "attributes": {
+        "kids": true,
+        "girls": true,
+        "boys": true,
+        "waterproof": true,
+        "casual": true
+      },
+      "description": "Quick-dry kids sandals for rain and beach days. Currently out of stock."
+    },
+    {
+      "id": "C001",
+      "name": "Neem & Aloe Soap Bar (Pack of 3)",
+      "store": "personal care",
+      "category": "soap",
+      "price_paise": 24900,
+      "price_display": "₹249",
+      "currency": "INR",
+      "stock": 60,
+      "attributes": {
+        "natural": true,
+        "sensitive_skin": true,
+        "antibacterial": true,
+        "kids": false
+      },
+      "description": "Neem and aloe soap for daily use, mild enough for sensitive skin."
+    },
+    {
+      "id": "C002",
+      "name": "Charcoal Detox Soap Bar (Pack of 2)",
+      "store": "personal care",
+      "category": "soap",
+      "price_paise": 19900,
+      "price_display": "₹199",
+      "currency": "INR",
+      "stock": 45,
+      "attributes": {
+        "natural": true,
+        "sensitive_skin": false,
+        "oily_skin": true,
+        "kids": false
+      },
+      "description": "Activated charcoal soap for oily and acne-prone skin."
+    },
+    {
+      "id": "C003",
+      "name": "Anti-Dandruff Shampoo 340ml",
+      "store": "personal care",
+      "category": "shampoo",
+      "price_paise": 39900,
+      "price_display": "₹399",
+      "currency": "INR",
+      "stock": 35,
+      "attributes": {
+        "anti_dandruff": true,
+        "sulphate_free": false,
+        "dry_hair": true,
+        "kids": false
+      },
+      "description": "Ketoconazole-free anti-dandruff shampoo with zinc pyrithione for flaky scalps."
+    },
+    {
+      "id": "C004",
+      "name": "Onion Hair Fall Shampoo 200ml",
+      "store": "personal care",
+      "category": "shampoo",
+      "price_paise": 44900,
+      "price_display": "₹449",
+      "currency": "INR",
+      "stock": 28,
+      "attributes": {
+        "anti_dandruff": false,
+        "sulphate_free": true,
+        "hair_fall": true,
+        "kids": false
+      },
+      "description": "Sulphate-free onion shampoo aimed at hair fall and thinning."
+    },
+    {
+      "id": "C005",
+      "name": "Baby Gentle Shampoo 200ml",
+      "store": "personal care",
+      "category": "shampoo",
+      "price_paise": 34900,
+      "price_display": "₹349",
+      "currency": "INR",
+      "stock": 50,
+      "attributes": {
+        "anti_dandruff": false,
+        "sulphate_free": true,
+        "kids": true,
+        "tear_free": true
+      },
+      "description": "Tear-free baby shampoo with no sulphates or parabens."
+    },
+    {
+      "id": "C006",
+      "name": "Sulphate-Free Daily Shampoo 250ml",
+      "store": "personal care",
+      "category": "shampoo",
+      "price_paise": 49900,
+      "price_display": "₹499",
+      "currency": "INR",
+      "stock": 22,
+      "attributes": {
+        "anti_dandruff": false,
+        "sulphate_free": true,
+        "dry_hair": true,
+        "kids": false
+      },
+      "description": "Gentle everyday shampoo for colour-treated and dry hair."
+    },
+    {
+      "id": "C007",
+      "name": "Citrus Body Wash 250ml",
+      "store": "personal care",
+      "category": "bodywash",
+      "price_paise": 29900,
+      "price_display": "₹299",
+      "currency": "INR",
+      "stock": 38,
+      "attributes": {
+        "natural": true,
+        "sensitive_skin": true,
+        "kids": false
+      },
+      "description": "Citrus body wash with glycerin, pH balanced for daily use."
+    },
+    {
+      "id": "C008",
+      "name": "Anti-Dandruff Shampoo 100ml (Travel)",
+      "store": "personal care",
+      "category": "shampoo",
+      "price_paise": 17900,
+      "price_display": "₹179",
+      "currency": "INR",
+      "stock": 0,
+      "attributes": {
+        "anti_dandruff": true,
+        "sulphate_free": false,
+        "dry_hair": true,
+        "kids": false
+      },
+      "description": "Travel size anti-dandruff shampoo. Currently out of stock."
+    }
+  ]
+}

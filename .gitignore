@@ -1,0 +1,38 @@
+# Secrets ------------------------------------------------------------------
+# Real keys live here. .env.example is tracked so the repo still documents
+# what needs setting.
+.env
+.env.*
+!.env.example
+
+# Build brief --------------------------------------------------------------
+# The prompt this project was built from; not part of the deliverable.
+prompt.txt
+
+# Python -------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments -----------------------------------------------------
+.venv/
+venv/
+env/
+
+# Runtime output -----------------------------------------------------------
+# Uvicorn log from local runs; state is in memory, so nothing else persists.
+server.log
+nohup.out
+
+# Scratch files from local tooling ------------------------------------------
+check.js
+_*.tmp
+
+# Editors and OS -----------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

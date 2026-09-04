@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VendAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --bg:        #FAFAF8;
+  --surface:   #FFFFFF;
+  --surface-2: #F4F4F1;
+  --text:      #1A1A19;
+  --text-2:    #6B6A65;
+  --border:    #E6E5E0;
+  --accent:    #5A4BDA;
+  --accent-ink:#F5F4FF;
+  --success:   #1F8A5B;
+  --danger:    #C0392B;
+  --warn:      #B7791F;
+  --radius:    12px;
+  /* Backdrop texture: the accent at very low alpha, so the grid reads as a
+     faint blue tint rather than as a second colour in the palette. */
+  --grid:      rgba(90, 75, 218, .07);
+  --grid-cell: 76px;
+  --shadow:    0 1px 2px rgba(20,20,19,.04), 0 4px 16px rgba(20,20,19,.06);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  /* Layer order paints top-down: the white wash sits over the grid and softens
+     it behind the content column, leaving it crisp toward the edges. */
+  background-image:
+    radial-gradient(900px 420px at 50% 40px, rgba(255, 255, 255, .92), rgba(255, 255, 255, 0) 70%),
+    repeating-linear-gradient(to right, var(--grid) 0 1px, transparent 1px var(--grid-cell)),
+    repeating-linear-gradient(to bottom, var(--grid) 0 1px, transparent 1px var(--grid-cell));
+  min-height: 100vh;
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 600; line-height: 1.3; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.meta { font-size: 13px; color: var(--text-2); }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* --- header --------------------------------------------------------------- */
+.site-header {
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, .72);
+  backdrop-filter: blur(8px);
+  position: sticky; top: 0; z-index: 10;
+}
+.site-header .inner {
+  max-width: 1100px; margin: 0 auto; padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.wordmark { display: flex; align-items: center; gap: 8px; font-weight: 600; letter-spacing: -.01em; }
+.wordmark .mark {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); position: relative; flex: none;
+}
+.wordmark .mark::after {
+  content: ""; position: absolute; inset: 5px;
+  border-radius: 50%; background: var(--accent-ink);
+}
+.mode-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--text-2);
+  border: 1px solid var(--border); border-radius: 999px; padding: 3px 12px;
+}
+.mode-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); flex: none; }
+
+/* --- layout --------------------------------------------------------------- */
+.workspace {
+  max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px;
+  display: grid; grid-template-columns: minmax(0, 62fr) minmax(0, 38fr); gap: 24px;
+  align-items: start;
+}
+.column { position: relative; min-width: 0; }
+.panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.panel-title {
+  font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--text-2); margin: 0 0 16px;
+}
+
+/* --- conversation --------------------------------------------------------- */
+.conversation { display: flex; flex-direction: column; }
+.thread {
+  padding: 24px; display: flex; flex-direction: column; gap: 16px;
+  min-height: 460px; max-height: 72vh; overflow-y: auto; overscroll-behavior: contain;
+}
+.welcome { padding: 24px 0 8px; }
+.welcome h1 { font-size: 28px; letter-spacing: -.02em; }
+.welcome p { color: var(--text-2); margin-top: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.chip {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 999px; padding: 8px 16px; font-size: 13px; cursor: pointer;
+  min-height: 36px; transition: border-color .15s ease, transform .15s ease;
+}
+.chip:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+.turn { display: flex; gap: 12px; max-width: 92%; animation: rise .2s ease both; }
+.turn.user { align-self: flex-end; }
+.turn.agent { align-self: flex-start; }
+.avatar {
+  width: 24px; height: 24px; border-radius: 50%; background: var(--accent);
+  flex: none; margin-top: 4px; position: relative;
+}
+.avatar::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: var(--accent-ink); }
+.bubble { padding: 10px 14px; border-radius: var(--radius); }
+.turn.user .bubble { background: var(--surface-2); border-top-right-radius: 4px; }
+.turn.agent .bubble { border: 1px solid var(--border); border-top-left-radius: 4px; }
+
+.typing { display: inline-flex; gap: 4px; padding: 4px 0; }
+.typing span {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--text-2); opacity: .4;
+  animation: blink 1.2s infinite ease-in-out;
+}
+.typing span:nth-child(2) { animation-delay: .2s; }
+.typing span:nth-child(3) { animation-delay: .4s; }
+
+.composer {
+  display: flex; gap: 8px; padding: 16px 24px;
+  border-top: 1px solid var(--border);
+}
+.composer input {
+  flex: 1; min-width: 0; padding: 12px 14px; font: inherit; font-size: 15px;
+  color: var(--text); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px;
+}
+.composer input::placeholder { color: var(--text-2); }
+
+.btn {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 10px; padding: 12px 18px; font-size: 15px; cursor: pointer;
+  min-height: 44px; transition: border-color .15s ease, background .15s ease, transform .15s ease;
+}
+.btn:hover:not(:disabled) { border-color: var(--text-2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover:not(:disabled) { transform: translateY(-1px); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* --- product card --------------------------------------------------------- */
+.card {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; background: var(--surface); animation: rise .2s ease both;
+}
+.card.reco { display: grid; grid-template-columns: 72px 1fr; gap: 16px; align-items: start;
+  transition: transform .15s ease, box-shadow .15s ease; }
+.card.reco:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.tile {
+  width: 72px; height: 72px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--surface-2); color: var(--text-2);
+}
+.tile svg { width: 32px; height: 32px; }
+.tile .initials { font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+.card h3 { font-size: 20px; letter-spacing: -.01em; }
+.card .price { font-size: 20px; font-weight: 600; margin-top: 4px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 8px; }
+.pill {
+  font-size: 13px; background: var(--surface-2); color: var(--text-2);
+  border-radius: 999px; padding: 3px 10px;
+}
+.stock { font-size: 13px; color: var(--text-2); }
+.stock::before { content: "•"; color: var(--success); margin-right: 6px; }
+.stock.out::before { color: var(--danger); }
+
+details.why { margin-top: 12px; }
+details.why summary {
+  font-size: 13px; color: var(--text-2); cursor: pointer; list-style: none;
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 0;
+}
+details.why summary::-webkit-details-marker { display: none; }
+details.why summary::after { content: "\203A"; transform: rotate(90deg); transition: transform .15s ease; }
+details.why[open] summary::after { transform: rotate(270deg); }
+.why-list { list-style: none; margin: 4px 0 0; padding: 0; font-size: 13px; color: var(--text-2); }
+.why-list li { padding: 2px 0; }
+.why-list li::before { content: "\2713"; color: var(--success); margin-right: 8px; }
+.card-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+.options { display: flex; flex-direction: column; gap: 10px; animation: rise .2s ease both; }
+.card.option { display: grid; grid-template-columns: 56px 1fr; gap: 14px; padding: 14px; align-items: start; }
+.card.option .tile { width: 56px; height: 56px; }
+.card.option .tile svg { width: 26px; height: 26px; }
+.card.option h3 { font-size: 16px; }
+.card.option .price { font-size: 16px; margin-top: 0; white-space: nowrap; }
+.card.option .pills { margin: 8px 0 6px; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.option-foot { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.option-foot label { font-size: 13px; color: var(--text-2); }
+.size-select {
+  font: inherit; font-size: 13px; padding: 6px 10px; min-height: 36px;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text);
+}
+.btn.small { padding: 8px 14px; font-size: 14px; min-height: 36px; }
+.pill.over { background: transparent; border: 1px solid var(--border); color: var(--warn); }
+
+.tabs { display: flex; gap: 24px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.tab {
+  background: none; border: 0; padding: 6px 0; margin-bottom: -1px; cursor: pointer;
+  font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--text-2); border-bottom: 2px solid transparent; min-height: 32px;
+  transition: color .15s ease, border-color .15s ease;
+}
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+.tab .count { font-weight: 400; }
+
+.cart-total { display: flex; justify-content: space-between; align-items: baseline;
+              margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.cart-total .amount { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cart-foot-note { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+.cart-foot-note.over { color: var(--warn); }
+#cart-foot .btn { width: 100%; margin-top: 16px; }
+.link-btn {
+  background: none; border: 0; padding: 0; cursor: pointer; font-size: 13px;
+  color: var(--text-2); text-decoration: underline; text-underline-offset: 2px;
+}
+.link-btn:hover { color: var(--danger); }
+
+.orders { max-height: 52vh; overflow-y: auto; }
+.order-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  animation: rise .2s ease both;
+}
+.order-row:last-child { border-bottom: 0; }
+.order-row .name { color: var(--text); }
+.order-row .amount { text-align: right; font-variant-numeric: tabular-nums; }
+.order-row .sub { color: var(--text-2); grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
+.order-row .state { display: inline-flex; align-items: center; gap: 5px; }
+.order-row .state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--text-2); }
+.order-row .state.paid::before { background: var(--success); }
+.order-row .state.failed::before { background: var(--danger); }
+.order-row .state.blocked::before { background: var(--warn); }
+.order-row .state.cancelled::before { background: var(--border); }
+
+.memory { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.memory summary {
+  list-style: none; cursor: pointer; font-size: 13px; color: var(--text-2);
+  display: flex; align-items: center; gap: 6px;
+}
+.memory summary::-webkit-details-marker { display: none; }
+.memory summary::after { content: "›"; transform: rotate(90deg); transition: transform .15s ease; }
+.memory[open] summary::after { transform: rotate(270deg); }
+.memory-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; padding: 3px 0; }
+.memory-row span:first-child { color: var(--text-2); }
+.memory h4 { font-size: 13px; font-weight: 600; margin: 12px 0 2px; color: var(--text-2); }
+
+/* --- approval overlay (in flow, scoped to the conversation column) --------- */
+.overlay {
+  position: absolute; inset: 0; z-index: 5;
+  background: rgba(250, 250, 248, .82); backdrop-filter: blur(2px);
+  display: grid; place-items: center; padding: 24px;
+  animation: fade .15s ease both;
+}
+.dialog {
+  width: min(440px, 100%); background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px;
+  animation: rise .2s ease both;
+}
+.dialog h2 { font-size: 20px; letter-spacing: -.01em; }
+.dialog .sub { margin-top: 4px; margin-bottom: 16px; }
+.ledger { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; font-size: 15px; }
+.ledger dt { color: var(--text-2); margin: 0; }
+.ledger dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.ledger dd.total { font-size: 20px; font-weight: 600; }
+.divider { height: 1px; background: var(--border); margin: 16px 0; border: 0; }
+.verify { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+.verify li { display: flex; gap: 8px; padding: 3px 0; color: var(--text-2); }
+.verify li .ok { color: var(--success); }
+.verify li .no { color: var(--danger); }
+.trust {
+  margin-top: 16px; padding: 12px; border-radius: 10px; background: var(--surface-2);
+  font-size: 13px; color: var(--text-2);
+}
+.trust b { color: var(--text); font-weight: 600; }
+.dialog-actions { display: flex; gap: 8px; margin-top: 24px; }
+.dialog-actions .btn { flex: 1; }
+
+/* --- payment states ------------------------------------------------------- */
+.steps { list-style: none; margin: 12px 0 0; padding: 0; font-size: 15px; }
+.steps li { display: flex; align-items: center; gap: 10px; padding: 5px 0; color: var(--text-2); }
+.steps li.active { color: var(--text); }
+.steps li.done { color: var(--text-2); }
+.steps .glyph { width: 16px; display: grid; place-items: center; flex: none; }
+.spinner {
+  width: 13px; height: 13px; border-radius: 50%;
+  border: 2px solid var(--border); border-top-color: var(--accent);
+  animation: spin .8s linear infinite;
+}
+.pay-link {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 16px;
+  color: var(--accent); font-size: 15px; text-decoration: none; border-bottom: 1px solid transparent;
+}
+.pay-link:hover { border-bottom-color: var(--accent); }
+.result { display: flex; gap: 12px; align-items: flex-start; }
+.result .badge { flex: none; margin-top: 2px; }
+.result .badge svg { width: 28px; height: 28px; }
+.check-draw { stroke-dasharray: 26; stroke-dashoffset: 26; animation: draw .35s ease .1s forwards; }
+.result h3 { font-size: 20px; letter-spacing: -.01em; }
+.result .amount { font-size: 15px; margin-top: 4px; }
+.notice { font-size: 15px; }
+.notice.blocked { color: var(--text); border-left: 2px solid var(--warn); padding-left: 10px; }
+.notice.failed { color: var(--danger); }
+
+/* --- activity rail -------------------------------------------------------- */
+.rail { padding: 24px; position: sticky; top: 24px; }
+.timeline { list-style: none; margin: 0; padding: 0 0 0 4px; max-height: 46vh; overflow-y: auto; }
+.timeline > li {
+  position: relative; padding: 0 0 14px 24px; animation: rise .2s ease both;
+}
+.timeline > li::before {
+  content: ""; position: absolute; left: 3px; top: 16px; bottom: 0;
+  width: 1px; background: var(--border);
+}
+.timeline > li:last-child::before { display: none; }
+.timeline .node {
+  position: absolute; left: 0; top: 6px; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text-2);
+}
+.timeline .node.done { background: var(--success); }
+.timeline .node.waiting { background: var(--warn); }
+.timeline .node.blocked { background: var(--warn); }
+.timeline .node.failed { background: var(--danger); }
+.timeline .row { display: flex; align-items: baseline; gap: 8px; font-size: 13px; }
+.timeline time { color: var(--text-2); font-variant-numeric: tabular-nums; flex: none; }
+.timeline .label { color: var(--text); }
+.timeline .actor { color: var(--text-2); }
+.timeline details summary {
+  list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 8px;
+}
+.timeline details summary::-webkit-details-marker { display: none; }
+.timeline .detail {
+  font-size: 13px; color: var(--text-2); margin-top: 4px;
+  background: var(--surface-2); border-radius: 8px; padding: 6px 10px; word-break: break-word;
+}
+.timeline-empty { font-size: 13px; color: var(--text-2); }
+
+.metrics {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.metrics div { font-size: 13px; color: var(--text-2); }
+.metrics b { display: block; font-size: 20px; color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* --- motion --------------------------------------------------------------- */
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes blink { 0%, 60%, 100% { opacity: .25; } 30% { opacity: .9; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+                           transition-duration: .01ms !important; }
+}
+
+@media (max-width: 880px) {
+  .workspace { grid-template-columns: 1fr; padding: 24px 16px 48px; }
+  .rail { position: static; }
+  .thread { max-height: none; }
+  .turn { max-width: 100%; }
+  /* Touch targets: 44px minimum on the things a thumb has to hit. */
+  .chip, details.why summary, .timeline details summary,
+  .btn.small, .size-select, .memory summary { min-height: 44px; }
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <span class="wordmark"><span class="mark" aria-hidden="true"></span>VendAI</span>
+    <span class="mode-pill"><span class="dot" aria-hidden="true"></span><span id="mode-label">Test mode</span></span>
+  </div>
+</header>
+
+<main class="workspace">
+  <div class="column" id="conversation-column">
+    <section class="panel conversation" aria-label="Shopping conversation">
+      <div class="thread" id="thread">
+        <div class="welcome" id="welcome">
+          <h1>What are you shopping for?</h1>
+          <p>Electronics, footwear and personal care in one place. Say it however you like &#8212; I&#8217;ll shortlist a few, and you approve before anything is paid.</p>
+          <div class="chips">
+            <button class="chip" type="button">Shoes for my daughter under &#8377;2,000</button>
+            <button class="chip" type="button">A shampoo that suits me</button>
+            <button class="chip" type="button">Wireless headphones under &#8377;3,000</button>
+          </div>
+        </div>
+      </div>
+      <form class="composer" id="composer">
+        <label class="sr-only" for="chat-input">What are you shopping for?</label>
+        <input id="chat-input" type="text" autocomplete="off" required
+               placeholder="Ask for anything in the store&#8230;">
+        <button class="btn primary" id="send" type="submit">Send</button>
+      </form>
+    </section>
+  </div>
+
+  <div class="column">
+    <section class="panel rail" aria-label="Activity">
+      <div class="tabs" role="tablist">
+        <button class="tab" type="button" role="tab" id="tab-activity"
+                aria-controls="panel-activity" aria-selected="true">Activity</button>
+        <button class="tab" type="button" role="tab" id="tab-orders"
+                aria-controls="panel-orders" aria-selected="false">Orders <span class="count" id="order-count"></span></button>
+        <button class="tab" type="button" role="tab" id="tab-cart"
+                aria-controls="panel-cart" aria-selected="false">Cart <span class="count" id="cart-count"></span></button>
+      </div>
+
+      <div id="panel-activity" role="tabpanel" aria-labelledby="tab-activity">
+        <details class="memory" id="memory">
+          <summary>What the store remembers about you</summary>
+          <div id="memory-body"></div>
+        </details>
+        <ol class="timeline" id="timeline" aria-live="polite">
+          <li class="timeline-empty">Every step the agent and the backend take will appear here.</li>
+        </ol>
+        <div class="metrics">
+          <div>Transactions<b id="m-tx">0</b></div>
+          <div>Successful<b id="m-ok">0</b></div>
+          <div>Blocked<b id="m-blocked">0</b></div>
+        </div>
+      </div>
+
+      <div id="panel-orders" role="tabpanel" aria-labelledby="tab-orders" hidden>
+        <div class="orders" id="orders"></div>
+      </div>
+
+      <div id="panel-cart" role="tabpanel" aria-labelledby="tab-cart" hidden>
+        <div class="orders" id="cart-lines"></div>
+        <div id="cart-foot"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+/* The page is deliberately thin: every rupee figure it shows was formatted by
+   the backend, and every decision it reflects (approve, block, retry) was made
+   there. The UI's job is to make that sequence legible. */
+
+const state = {
+  limits: null, product: null, order: null,
+  lastSeq: 0, poller: null, thinking: null,
+};
+
+const $ = (id) => document.getElementById(id);
+const thread = () => $('thread');
+
+async function api(path, options) {
+  const response = await fetch(path, options);
+  return response.json();
+}
+
+function post(path, body) {
+  return api(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+}
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function scrollThread() {
+  thread().scrollTop = thread().scrollHeight;
+}
+
+/* --- product tiles: flat, category-coloured, never a network request ------- */
+
+const ICONS = {
+  headphones: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="7" rx="2"/><rect x="17" y="14" width="4" height="7" rx="2"/>',
+  keyboards: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>',
+  mice: '<rect x="7" y="3" width="10" height="18" rx="5"/><path d="M12 7v3"/>',
+  monitors: '<rect x="2" y="4" width="20" height="12" rx="2"/><path d="M9 20h6M12 16v4"/>',
+  laptops: '<rect x="4" y="5" width="16" height="10" rx="2"/><path d="M2 19h20"/>',
+  accessories: '<rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 9V6M17 9V6"/>',
+};
+
+const TILE_COLORS = {
+  headphones: ['#EEF1F6', '#5A6B85'],
+  keyboards: ['#F1EFEA', '#857A64'],
+  mice: ['#EDF3EF', '#4E7C64'],
+  monitors: ['#F3EFF3', '#7C5F7C'],
+  laptops: ['#F0F1EC', '#6B7259'],
+  accessories: ['#F5F0EA', '#8A6F55'],
+};
+
+function productTile(product) {
+  const [background, ink] = TILE_COLORS[product.category] || ['#F4F4F1', '#6B6A65'];
+  const tile = el('div', 'tile');
+  tile.style.background = background;
+  tile.style.color = ink;
+  const icon = ICONS[product.category];
+  if (icon) {
+    tile.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" '
+      + 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + icon + '</svg>';
+  } else {
+    // Initials fallback: a missing icon still renders something intentional.
+    const initials = product.name.split(' ').slice(0, 2).map((word) => word[0]).join('');
+    tile.appendChild(el('span', 'initials', initials.toUpperCase()));
+  }
+  return tile;
+}
+
+/* --- conversation --------------------------------------------------------- */
+
+function addTurn(role, text) {
+  const turn = el('div', 'turn ' + role);
+  if (role === 'agent') turn.appendChild(el('div', 'avatar'));
+  turn.appendChild(el('div', 'bubble', text));
+  thread().appendChild(turn);
+  scrollThread();
+  return turn;
+}
+
+function showThinking() {
+  const turn = el('div', 'turn agent');
+  turn.appendChild(el('div', 'avatar'));
+  const bubble = el('div', 'bubble');
+  bubble.innerHTML = '<span class="typing"><span></span><span></span><span></span></span>';
+  bubble.setAttribute('aria-label', 'Agent is thinking');
+  turn.appendChild(bubble);
+  thread().appendChild(turn);
+  scrollThread();
+  state.thinking = turn;
+}
+
+function hideThinking() {
+  if (state.thinking) state.thinking.remove();
+  state.thinking = null;
+}
+
+async function sendMessage(text) {
+  const welcome = $('welcome');
+  if (welcome) welcome.remove();
+  addTurn('user', text);
+  $('send').disabled = true;
+  showThinking();
+  try {
+    const data = await post('/chat', { message: text });
+    hideThinking();
+    addTurn('agent', data.reply);
+    if (data.options && data.options.length) renderOptions(data.options, data.size);
+    if (data.profile) renderMemory(data.profile);
+    if (data.order) openApproval(data.order, data.gate_preview);
+  } catch (error) {
+    hideThinking();
+    addTurn('agent', 'I could not reach the store just then. Nothing was charged - try again?');
+  } finally {
+    $('send').disabled = false;
+    refreshAudit();
+    scrollThread();
+  }
+}
+
+function renderOptions(options, turnSize) {
+  const list = el('div', 'options');
+  options.forEach((option) => list.appendChild(optionCard(option, turnSize)));
+  thread().appendChild(list);
+  scrollThread();
+}
+
+function optionCard(option, turnSize) {
+  const product = option.product;
+  const card = el('div', 'card option reco');
+  card.appendChild(productTile(product));
+
+  const body = el('div');
+  const head = el('div', 'head');
+  head.appendChild(el('h3', null, product.name));
+  head.appendChild(el('div', 'price', product.price_display));
+  body.appendChild(head);
+
+  const pills = el('div', 'pills');
+  pills.appendChild(el('span', 'pill', product.category));
+  Object.entries(product.attributes)
+    .filter(([, value]) => value === true)
+    .slice(0, 2)
+    .forEach(([key]) => pills.appendChild(el('span', 'pill', key.replace(/_/g, ' '))));
+  if (!option.within_limit) pills.appendChild(el('span', 'pill over', 'over AI limit'));
+  body.appendChild(pills);
+
+  const inStock = product.stock > 0;
+  body.appendChild(el('div', 'stock' + (inStock ? '' : ' out'),
+    inStock ? product.stock + ' in stock' : 'Out of stock'));
+
+  if (option.reasons && option.reasons.length) {
+    const why = el('details', 'why');
+    why.appendChild(el('summary', null, 'Why this?'));
+    const reasons = el('ul', 'why-list');
+    option.reasons.forEach((reason) => reasons.appendChild(el('li', null, reason)));
+    why.appendChild(reasons);
+    body.appendChild(why);
+  }
+
+  // Footwear cannot be ordered without a size; the backend refuses either way,
+  // so the picker exists to make the choice easy, not to make it safe.
+  const foot = el('div', 'option-foot');
+  let sizeSelect = null;
+  if (option.needs_size && option.sizes.length) {
+    sizeSelect = el('select', 'size-select');
+    sizeSelect.id = 'size-' + product.id;
+    option.sizes.forEach((size) => {
+      const choice = el('option', null, size);
+      choice.value = size;
+      if (turnSize && size === turnSize) choice.selected = true;
+      sizeSelect.appendChild(choice);
+    });
+    const label = el('label', null, 'Size');
+    label.htmlFor = sizeSelect.id;
+    foot.append(label, sizeSelect);
+  }
+
+  const addBtn = el('button', 'btn small', 'Add to cart');
+  addBtn.type = 'button';
+  addBtn.disabled = !inStock;
+  addBtn.addEventListener('click', () => addToCart(product, sizeSelect ? sizeSelect.value : null, addBtn));
+
+  const choose = el('button', 'btn primary small', inStock ? 'Buy now' : 'Unavailable');
+  choose.type = 'button';
+  choose.disabled = !inStock;
+  choose.addEventListener('click', () => chooseOption(product, sizeSelect ? sizeSelect.value : null, choose));
+  foot.append(addBtn, choose);
+  body.appendChild(foot);
+
+  card.appendChild(body);
+  return card;
+}
+
+async function addToCart(product, size, button) {
+  button.disabled = true;
+  const label = button.textContent;
+  const data = await post('/cart', { product_id: product.id, quantity: 1, size: size });
+  refreshAudit();
+  if (!data.ok) {
+    addTurn('agent', data.reason);
+    button.disabled = false;
+    return;
+  }
+  renderCart(data.cart);
+  button.textContent = 'Added';
+  setTimeout(() => { button.textContent = label; button.disabled = false; }, 1400);
+}
+
+async function chooseOption(product, size, button) {
+  button.disabled = true;
+  addTurn('user', 'I’ll take the ' + product.name + (size ? ' in ' + size : '') + '.');
+  const data = await post('/orders', { product_id: product.id, quantity: 1, size: size });
+  refreshAudit();
+  if (!data.ok) {
+    addTurn('agent', data.reason);
+    button.disabled = false;
+    return;
+  }
+  openApproval(data.order, data.gate_preview);
+}
+
+/* --- what the store remembers --------------------------------------------- */
+
+function renderMemory(snapshot) {
+  const body = $('memory-body');
+  body.innerHTML = '';
+  const preferences = Object.entries(snapshot.preferences || {});
+  if (!preferences.length && !(snapshot.history || []).length) {
+    body.appendChild(el('p', 'meta', 'Nothing saved yet. Anything you tell me, I keep for next time.'));
+    return;
+  }
+  preferences.forEach(([key, value]) => {
+    const row = el('div', 'memory-row');
+    row.appendChild(el('span', null, (snapshot.preference_labels || {})[key] || key.replace(/_/g, ' ')));
+    row.appendChild(el('span', null, value));
+    body.appendChild(row);
+  });
+  const history = (snapshot.history || []).slice(0, 3);
+  if (history.length) {
+    body.appendChild(el('h4', null, 'Past orders'));
+    history.forEach((order) => {
+      const row = el('div', 'memory-row');
+      row.appendChild(el('span', null, order.product));
+      row.appendChild(el('span', null, order.total));
+      body.appendChild(row);
+    });
+  }
+}
+
+/* --- approval: a review screen, not a payment form ------------------------ */
+
+function openApproval(order, preview) {
+  state.order = order;
+  closeApproval();
+
+  const overlay = el('div', 'overlay');
+  overlay.id = 'approval-overlay';
+  const dialog = el('div', 'dialog');
+  dialog.setAttribute('role', 'dialog');
+  dialog.setAttribute('aria-modal', 'true');
+  dialog.setAttribute('aria-labelledby', 'approval-title');
+
+  const title = el('h2', null, 'Review this purchase');
+  title.id = 'approval-title';
+  dialog.appendChild(title);
+  dialog.appendChild(el('p', 'meta sub', 'Nothing is charged until you approve this exact order.'));
+
+  const ledger = el('dl', 'ledger');
+  const rows = [];
+  (order.items || []).forEach((line) => {
+    const name = line.product_name
+      + (line.quantity > 1 ? ' × ' + line.quantity : '')
+      + (line.size ? ' · ' + line.size : '');
+    rows.push([name, line.line_total_display, '']);
+  });
+  rows.push(['Total', order.total_display, 'total']);
+  rows.push(['AI spending limit', order.limit_display, '']);
+  rows.push(['Remaining after', order.remaining_display || 'over the limit', '']);
+  rows.forEach(([label, value, className]) => {
+    ledger.appendChild(el('dt', null, label));
+    ledger.appendChild(el('dd', className, value));
+  });
+  dialog.appendChild(ledger);
+  dialog.appendChild(el('hr', 'divider'));
+
+  const checks = (preview && preview.checks) || [];
+  const list = el('ul', 'verify');
+  checks.forEach((check) => {
+    const item = el('li');
+    item.appendChild(el('span', check.ok ? 'ok' : 'no', check.ok ? '\u2713' : '\u2717'));
+    item.appendChild(el('span', null, check.label + ' \u00b7 ' + check.detail));
+    list.appendChild(item);
+  });
+  dialog.appendChild(list);
+
+  const blocked = preview && preview.allowed === false;
+  const trust = el('div', 'trust');
+  if (blocked) {
+    trust.className = 'trust';
+    trust.appendChild(el('b', null, 'Blocked by transaction controls'));
+    trust.appendChild(el('div', null, preview.reason));
+  } else {
+    trust.appendChild(el('b', null, 'Protected by transaction controls'));
+    trust.appendChild(el('div', null, state.limits.max_txn_display + ' max \u00b7 human approval required \u00b7 max '
+      + state.limits.max_payment_attempts + ' attempts'));
+  }
+  dialog.appendChild(trust);
+
+  const actions = el('div', 'dialog-actions');
+  const cancel = el('button', 'btn', 'Cancel');
+  cancel.type = 'button';
+  cancel.addEventListener('click', cancelOrder);
+  const approve = el('button', 'btn primary', 'Approve \u0026 pay');
+  approve.type = 'button';
+  approve.disabled = !!blocked;
+  approve.addEventListener('click', approveAndPay);
+  actions.append(cancel, approve);
+  dialog.appendChild(actions);
+
+  overlay.appendChild(dialog);
+  overlay.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') cancelOrder();
+  });
+  $('conversation-column').appendChild(overlay);
+  (blocked ? cancel : approve).focus();
+}
+
+function closeApproval() {
+  const overlay = $('approval-overlay');
+  if (overlay) overlay.remove();
+}
+
+async function cancelOrder() {
+  closeApproval();
+  if (state.order) await post('/orders/' + state.order.id + '/cancel');
+  addTurn('agent', 'Cancelled - nothing was charged. Want to look at something else?');
+  $('chat-input').focus();
+  refreshAudit();
+}
+
+async function approveAndPay() {
+  const approval = await post('/orders/' + state.order.id + '/approve');
+  refreshAudit();
+  if (!approval.ok) {
+    addTurn('agent', approval.reason);
+    closeApproval();
+    return;
+  }
+  state.order = approval.order;
+  closeApproval();
+  startPayment();
+}
+
+/* --- payment: one card that updates in place ------------------------------ */
+
+function paymentCard() {
+  if (state.paymentCard && state.paymentCard.isConnected) return state.paymentCard;
+  const card = el('div', 'card');
+  card.setAttribute('aria-live', 'polite');
+  thread().appendChild(card);
+  state.paymentCard = card;
+  return card;
+}
+
+const PAYMENT_STEPS = ['Preparing payment', 'Waiting for payment', 'Done'];
+
+function renderSteps(activeIndex) {
+  const card = paymentCard();
+  card.innerHTML = '';
+  const list = el('ul', 'steps');
+  PAYMENT_STEPS.forEach((label, index) => {
+    const item = el('li', index === activeIndex ? 'active' : (index < activeIndex ? 'done' : ''));
+    const glyph = el('span', 'glyph');
+    if (index < activeIndex) glyph.textContent = '\u2713';
+    else if (index === activeIndex) glyph.appendChild(el('span', 'spinner'));
+    else glyph.textContent = '\u00b7';
+    item.append(glyph, el('span', null, label));
+    list.appendChild(item);
+  });
+  card.appendChild(list);
+  scrollThread();
+  return card;
+}
+
+async function startPayment() {
+  renderSteps(0);
+  const result = await post('/orders/' + state.order.id + '/pay');
+  refreshAudit();
+
+  if (!result.ok) {
+    const reason = result.blocked ? result.gate.reason : result.reason;
+    const card = paymentCard();
+    card.innerHTML = '';
+    card.appendChild(el('h3', null, result.blocked ? 'Blocked before payment' : 'Payment could not start'));
+    card.appendChild(el('p', 'notice blocked', reason));
+    card.appendChild(el('p', 'meta', 'No charge was made. Nothing left your account.'));
+    state.paymentCard = null;
+    return;
+  }
+
+  state.order = result.order;
+  const card = renderSteps(1);
+  const link = el('a', 'pay-link', 'Open payment page \u2197');
+  link.href = result.payment_url;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  card.appendChild(link);
+  card.appendChild(el('p', 'meta', 'Attempt ' + state.order.attempts + ' of '
+    + state.limits.max_payment_attempts + ' \u00b7 order ' + state.order.id));
+  state.paymentCard = card;
+  scrollThread();
+  pollStatus();
+}
+
+function pollStatus() {
+  clearInterval(state.poller);
+  state.poller = setInterval(checkStatus, 2000);
+}
+
+async function checkStatus() {
+  const data = await api('/orders/' + state.order.id + '/status');
+  if (!data.ok || !data.order) return;
+  state.order = data.order;
+  refreshAudit();
+  if (state.order.status === 'paid') {
+    clearInterval(state.poller);
+    renderSuccess(data);
+    refreshOrders();
+  } else if (state.order.status === 'failed') {
+    clearInterval(state.poller);
+    renderFailure(data);
+    refreshOrders();
+  }
+}
+
+function renderSuccess(data) {
+  const card = paymentCard();
+  card.innerHTML = '';
+  const result = el('div', 'result');
+  const badge = el('div', 'badge');
+  badge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#1F8A5B" stroke-width="2" '
+    + 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path class="check-draw" d="M4 12.5l5 5L20 6.5"/></svg>';
+  const body = el('div');
+  body.appendChild(el('h3', null, 'Payment successful'));
+  body.appendChild(el('div', 'amount', state.order.total_display + ' \u00b7 '
+    + state.order.product_name + ' \u00d7 ' + state.order.quantity));
+  body.appendChild(el('p', 'meta', 'Order ' + state.order.id));
+  const actions = el('div', 'card-actions');
+  const again = el('button', 'btn', 'Continue shopping');
+  again.type = 'button';
+  again.addEventListener('click', () => {
+    state.paymentCard = null;
+    $('chat-input').focus();
+    addTurn('agent', 'Anything else you need?');
+  });
+  actions.appendChild(again);
+  body.appendChild(actions);
+  result.append(badge, body);
+  card.appendChild(result);
+  state.paymentCard = null;
+  scrollThread();
+}
+
+function renderFailure(data) {
+  const card = paymentCard();
+  card.innerHTML = '';
+  card.appendChild(el('h3', null, 'Payment wasn\u2019t completed'));
+  card.appendChild(el('p', 'notice', 'No charge was made.'));
+
+  const actions = el('div', 'card-actions');
+  if (data.retry_allowed) {
+    const retry = el('button', 'btn primary', 'Retry payment');
+    retry.type = 'button';
+    retry.addEventListener('click', () => { state.paymentCard = card; startPayment(); });
+    actions.appendChild(retry);
+    const cancel = el('button', 'btn', 'Cancel');
+    cancel.type = 'button';
+    cancel.addEventListener('click', () => { state.paymentCard = null; cancelOrder(); });
+    actions.appendChild(cancel);
+    card.appendChild(el('p', 'meta', 'Attempt ' + state.order.attempts + ' of '
+      + state.limits.max_payment_attempts + ' used.'));
+  } else {
+    // The cap is enforced in the backend gate; the UI only reports it.
+    card.appendChild(el('p', 'notice failed', 'No further retries allowed \u2014 attempt limit reached.'));
+    const done = el('button', 'btn', 'Start over');
+    done.type = 'button';
+    done.addEventListener('click', () => { state.paymentCard = null; $('chat-input').focus(); });
+    actions.appendChild(done);
+  }
+  card.appendChild(actions);
+  state.paymentCard = null;
+  scrollThread();
+}
+
+/* --- activity rail -------------------------------------------------------- */
+
+const STEP_LABELS = {
+  user_request: ['You asked', 'done'],
+  agent_search: ['Searched catalog', 'done'],
+  product_details: ['Checked product', 'done'],
+  product_selected: ['Selected product', 'done'],
+  agent_reply: ['Agent replied', 'done'],
+  profile_read: ['Checked what we remember', 'done'],
+  preference_saved: ['Saved a preference', 'done'],
+  clarification_asked: ['Asked you a question', 'waiting'],
+  unavailable_flagged: ['Out of stock, told you', 'waiting'],
+  context_carried: ['Carried the request forward', 'done'],
+  cart_added: ['Added to cart', 'done'],
+  cart_updated: ['Cart quantity changed', 'done'],
+  cart_removed: ['Removed from cart', 'done'],
+  cart_checkout: ['Checked out the cart', 'done'],
+  propose_purchase: ['Order draft rejected', 'failed'],
+  approval_given: ['You approved', 'done'],
+  gate_passed: ['Backend checks passed', 'done'],
+  gate_blocked: ['Blocked', 'blocked'],
+  payment_link_created: ['Payment link created', 'done'],
+  status_polled: ['Waiting for payment', 'waiting'],
+  payment_succeeded: ['Payment successful', 'done'],
+  payment_failed: ['Payment failed', 'failed'],
+  payment_link_failed: ['Payment provider unreachable', 'failed'],
+  status_poll_failed: ['Status check failed', 'failed'],
+  order_cancelled: ['Order cancelled', 'waiting'],
+  agent_error: ['Agent fell back to catalog search', 'waiting'],
+};
+
+const STATE_GLYPH = { done: '\u2713', waiting: '\u25CB', blocked: '\u26D4', failed: '\u2715' };
+
+function entryDetail(entry) {
+  const detail = entry.detail || {};
+  if (detail.value) return (detail.label || detail.key) + ' → ' + detail.value;
+  if (detail.previously_purchased !== undefined) {
+    return detail.product + (detail.previously_purchased
+      ? ' · bought ' + detail.previously_purchased + ' time(s) before'
+      : ' · asked for by name');
+  }
+  if (detail.missing) return 'needed the ' + detail.missing.replace(/_/g, ' ');
+  if (detail.to) return '“' + detail.from + '” → “' + detail.to + '”';
+  if (detail.known) return detail.known.length
+    ? 'knows ' + detail.known.join(', ') : 'nothing saved yet';
+  if (detail.reason) return detail.reason;
+  if (detail.checks) return detail.checks.join(' \u00b7 ');
+  if (detail.results) return 'matched ' + detail.results.join(', ');
+  if (detail.product) return detail.product + (detail.total ? ' \u2014 ' + detail.total : '');
+  if (detail.amount) return detail.amount + (detail.attempt ? ' \u00b7 attempt ' + detail.attempt : '');
+  if (detail.message) return '\u201c' + detail.message + '\u201d';
+  if (detail.reply) return '\u201c' + detail.reply.slice(0, 120) + '\u201d';
+  return null;
+}
+
+function timelineRow(entry) {
+  const [label, defaultState] = STEP_LABELS[entry.action]
+    || [entry.action.replace(/_/g, ' '), 'done'];
+  const rowState = entry.status === 'blocked' ? 'blocked'
+    : entry.status === 'failed' ? 'failed' : defaultState;
+
+  const item = el('li');
+  const node = el('span', 'node ' + rowState);
+  node.setAttribute('aria-hidden', 'true');
+  item.appendChild(node);
+
+  const head = el('div', 'row');
+  head.appendChild(el('time', null, entry.time));
+  head.appendChild(el('span', 'label', STATE_GLYPH[rowState] + ' ' + label));
+  head.appendChild(el('span', 'actor', entry.actor.toLowerCase()));
+
+  const detail = entryDetail(entry);
+  if (!detail) {
+    item.appendChild(head);
+    return item;
+  }
+  const disclosure = el('details');
+  const summary = el('summary');
+  summary.appendChild(head);
+  disclosure.appendChild(summary);
+  disclosure.appendChild(el('div', 'detail', detail));
+  item.appendChild(disclosure);
+  return item;
+}
+
+async function refreshAudit() {
+  const data = await api('/audit?since=' + state.lastSeq);
+  const timeline = $('timeline');
+  if (data.entries.length) {
+    const empty = timeline.querySelector('.timeline-empty');
+    if (empty) empty.remove();
+  }
+  data.entries.forEach((entry) => {
+    state.lastSeq = entry.seq;
+    timeline.appendChild(timelineRow(entry));
+  });
+  if (data.entries.length) timeline.scrollTop = timeline.scrollHeight;
+  if (data.entries.length && ordersVisible()) refreshOrders();
+  $('m-tx').textContent = data.counters.transactions;
+  $('m-ok').textContent = data.counters.successful;
+  $('m-blocked').textContent = data.counters.blocked;
+}
+
+/* --- order history -------------------------------------------------------- */
+
+const ORDER_STATE_LABEL = {
+  paid: 'paid', failed: 'payment failed', blocked: 'blocked by limits',
+  cancelled: 'cancelled', proposed: 'awaiting your approval',
+  approved: 'approved, not paid', awaiting_payment: 'payment in progress',
+};
+
+function ordersVisible() {
+  return !$('panel-orders').hidden;
+}
+
+async function refreshOrders() {
+  const data = await api('/orders');
+  const list = $('orders');
+  list.innerHTML = '';
+  $('order-count').textContent = data.orders.length ? '(' + data.orders.length + ')' : '';
+
+  if (!data.orders.length) {
+    list.appendChild(el('p', 'meta', 'No orders yet. Anything you buy shows up here.'));
+    return;
+  }
+  data.orders.forEach((order) => {
+    const row = el('div', 'order-row');
+    row.appendChild(el('div', 'name', order.summary));
+    row.appendChild(el('div', 'amount', order.total_display));
+
+    const sub = el('div', 'sub');
+    sub.appendChild(el('span', null, order.when));
+    (order.items || []).filter((line) => line.size)
+      .forEach((line) => sub.appendChild(el('span', null, line.size)));
+    sub.appendChild(el('span', 'state ' + order.status,
+      ORDER_STATE_LABEL[order.status] || order.status));
+    if (order.id) sub.appendChild(el('span', null, order.id));
+    row.appendChild(sub);
+    list.appendChild(row);
+  });
+}
+
+/* --- cart ----------------------------------------------------------------- */
+
+function renderCart(data) {
+  const lines = $('cart-lines');
+  const foot = $('cart-foot');
+  lines.innerHTML = '';
+  foot.innerHTML = '';
+  $('cart-count').textContent = data.count ? '(' + data.count + ')' : '';
+
+  if (!data.lines.length) {
+    lines.appendChild(el('p', 'meta', 'Your cart is empty. Add something from a recommendation.'));
+    return;
+  }
+
+  data.lines.forEach((line) => {
+    const row = el('div', 'order-row');
+    row.appendChild(el('div', 'name', line.product_name
+      + (line.quantity > 1 ? ' × ' + line.quantity : '')));
+    row.appendChild(el('div', 'amount', line.line_total_display));
+    const sub = el('div', 'sub');
+    if (line.size) sub.appendChild(el('span', null, line.size));
+    sub.appendChild(el('span', null, line.unit_price_display + ' each'));
+    const remove = el('button', 'link-btn', 'Remove');
+    remove.type = 'button';
+    remove.addEventListener('click', async () => {
+      const updated = await post('/cart/' + line.line_id + '/remove');
+      renderCart(updated.cart);
+      refreshAudit();
+    });
+    sub.appendChild(remove);
+    row.appendChild(sub);
+    lines.appendChild(row);
+  });
+
+  const total = el('div', 'cart-total');
+  total.appendChild(el('span', null, 'Total'));
+  total.appendChild(el('span', 'amount', data.total_display));
+  foot.appendChild(total);
+  foot.appendChild(el('p', 'cart-foot-note' + (data.within_limit ? '' : ' over'),
+    data.within_limit
+      ? 'AI spending limit ' + data.limit_display
+      : 'Over the ' + data.limit_display + ' AI limit — the backend will block this at payment.'));
+
+  const checkoutBtn = el('button', 'btn primary', 'Checkout');
+  checkoutBtn.type = 'button';
+  checkoutBtn.addEventListener('click', checkout);
+  foot.appendChild(checkoutBtn);
+}
+
+async function refreshCart() {
+  renderCart(await api('/cart'));
+}
+
+async function checkout() {
+  const data = await post('/cart/checkout');
+  refreshAudit();
+  if (!data.ok) {
+    addTurn('agent', data.reason);
+    return;
+  }
+  selectTab('activity');
+  openApproval(data.order, data.gate_preview);
+}
+
+function selectTab(name) {
+  ['activity', 'orders', 'cart'].forEach((tab) => {
+    $('panel-' + tab).hidden = tab !== name;
+    $('tab-' + tab).setAttribute('aria-selected', String(tab === name));
+  });
+  if (name === 'orders') refreshOrders();
+  if (name === 'cart') refreshCart();
+}
+
+/* --- wiring --------------------------------------------------------------- */
+
+$('tab-activity').addEventListener('click', () => selectTab('activity'));
+$('tab-orders').addEventListener('click', () => selectTab('orders'));
+$('tab-cart').addEventListener('click', () => selectTab('cart'));
+
+$('composer').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const text = $('chat-input').value.trim();
+  if (!text) return;
+  $('chat-input').value = '';
+  sendMessage(text);
+});
+
+document.querySelectorAll('.chip').forEach((chip) => {
+  chip.addEventListener('click', () => sendMessage(chip.textContent));
+});
+
+async function init() {
+  const config = await api('/config');
+  state.limits = config.limits;
+  $('mode-label').textContent = config.mock_mode
+    ? 'Test mode \u00b7 mock payments'
+    : 'Test mode \u00b7 Razorpay test keys';
+  $('chat-input').placeholder = 'Try: wireless headphones under \u20b93,000';
+  refreshAudit();
+  setInterval(refreshAudit, 2500);
+}
+
+init();
+</script>
+</body>
+</html>

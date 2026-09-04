@@ -1,0 +1,26 @@
+{
+  "preferences": {
+    "hair_concern": "dandruff-prone, dry scalp",
+    "skin_type": "sensitive"
+  },
+  "history": [
+    {
+      "date": "2026-07-18",
+      "product_id": "P010",
+      "product": "Dart 3 Lightweight Wireless Gaming Mouse",
+      "total": "\u20b91,899"
+    },
+    {
+      "date": "2026-06-02",
+      "product_id": "C008",
+      "product": "Anti-Dandruff Shampoo 100ml (Travel)",
+      "total": "\u20b9179"
+    },
+    {
+      "date": "2026-04-11",
+      "product_id": "C008",
+      "product": "Anti-Dandruff Shampoo 100ml (Travel)",
+      "total": "\u20b9179"
+    }
+  ]
+}
