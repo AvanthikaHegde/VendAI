@@ -143,7 +143,7 @@ What this means concretely:
 
 ---
 
-## Two design decisions worth knowing
+## Two design decisions
 
 **Sizes are stored per person** - `shoe_size`, `sister_shoe_size`,
 `daughter_shoe_size` - so "shoes for my sister" never silently reuses the
@@ -259,10 +259,7 @@ not reported.
 
 ---
 
-## What this is not
-
-A 5-hour hackathon MVP, scoped deliberately. Before anyone points these out - or
-considers real money - they are known and intentional:
+## Certain Notes
 
 - **State is in memory.** Restarting the server clears orders, the audit trail
   and any preference learned during the session; `profile.json` is the seed it
