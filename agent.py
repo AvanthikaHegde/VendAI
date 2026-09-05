@@ -264,8 +264,17 @@ def _resolved_size_key(turn: dict[str, Any], recipient: str | None) -> tuple[str
             owner = _recipient(turn.get("previous_query", ""))
             key = _size_key(owner)
     else:
+        if recipient is None and not _says_self(turn.get("query", "")):
+            # "actually she wants pink ones" names nobody new, so it is still
+            # about whoever the last request was for. Without this the request
+            # falls through to shoe_size, which is how the shopper's own size
+            # ends up on their daughter's feet.
+            recipient = turn.setdefault("session", {}).get("recipient")
         key, owner = _size_key(recipient), recipient
     turn["size_key"], turn["size_owner"] = key, owner
+    # Naming someone (or saying "for me") sets who we are shopping for until the
+    # shopper says otherwise; it is not re-decided from scratch every message.
+    turn.setdefault("session", {})["recipient"] = owner
     return key, owner
 
 
@@ -766,7 +775,9 @@ def _keyword_turn(message: str, session: dict[str, Any], turn: dict[str, Any]) -
     # 4. Footwear cannot be ordered without a size, and the size belongs to
     #    whoever the shoes are for -- never to whoever asked.
     if any(catalog.required_choice(product) == "size" for product in results):
-        recipient = _recipient(message)
+        recipient = _recipient(message) or (
+            None if _says_self(message) else session.get("recipient"))
+        session["recipient"] = recipient
         people = _known_people(profile.snapshot()["preferences"])
         if recipient is None and len(people) > 1 and not who_resolved and not _says_self(message):
             session["pending"] = {"key": "__who__", "recipient": None, "query": message}

@@ -8,6 +8,7 @@ without that call, and the agent has no way to reach one.
 from __future__ import annotations
 
 import os
+import secrets
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -29,6 +30,12 @@ import profile  # noqa: E402
 import razorpay_client as razorpay  # noqa: E402
 
 STATIC_DIR = Path(__file__).parent / "static"
+
+# Razorpay requires reference_id to be unique across the whole account, but order
+# ids restart at ORD-0001 on every boot because the sequence lives in memory.
+# Without a per-process prefix the second run of the server would collide with
+# the first one's links and every payment would fail on the real API.
+RUN_ID = secrets.token_hex(3)
 
 app = FastAPI(title="VendAI - agentic commerce demo")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -72,9 +79,18 @@ def index() -> FileResponse:
 def config() -> dict[str, Any]:
     """What the UI needs to render itself honestly: the real limits and whether
     payments are mocked."""
+    try:
+        mock_mode: bool | None = razorpay.is_mock()
+        payments_error = None
+    except razorpay.RazorpayError as exc:
+        # A live key in the environment is a configuration error, not a mode.
+        # Report it as one rather than 500-ing the whole page on a plain GET.
+        mock_mode = None
+        payments_error = str(exc)
     return {
         "merchant": "VendAI",
-        "mock_mode": razorpay.is_mock(),
+        "mock_mode": mock_mode,
+        "payments_error": payments_error,
         "llm_enabled": bool(os.getenv("OPENAI_API_KEY")),
         "limits": gate.limits(),
         "stores": catalog.stores(),
@@ -139,7 +155,7 @@ def pay(order_id: str) -> dict[str, Any]:
     try:
         link = razorpay.create_payment_link(
             amount_paise=order["total_paise"],
-            reference_id=f"{order['id']}-A{order['attempts'] + 1}",
+            reference_id=f"{RUN_ID}-{order['id']}-A{order['attempts'] + 1}",
             description=order["summary"],
         )
     except razorpay.RazorpayError as exc:
@@ -224,6 +240,41 @@ def status(order_id: str) -> dict[str, Any]:
 
     return {"ok": True, "order": order_view(order), "payment_status": payment_status,
             "message": message, "counters": audit.counters()}
+
+
+@app.post("/orders/{order_id}/payment/abandon")
+def abandon_payment(order_id: str) -> dict[str, Any]:
+    """The shopper says they could not complete this payment.
+
+    A failed payment leaves the Razorpay link `created`, so without this the
+    order would poll forever and the retry cap would never be exercised.
+    Cancelling the link produces a terminal status, and resolution then happens
+    in exactly one place -- `status()` below -- so an abandoned payment and a
+    genuinely cancelled one travel the same path and get the same gate ruling.
+    """
+    order = gate.get_order(order_id)
+    if order is None:
+        return {"ok": False, "reason": "Unknown order."}
+    if not order.get("payment_link_id"):
+        return {"ok": False, "reason": "No payment has been started for this order."}
+    if order["status"] == "paid":
+        return {"ok": False, "reason": "This order has already been paid."}
+
+    try:
+        razorpay.cancel_payment_link(order["payment_link_id"])
+    except razorpay.RazorpayError as exc:
+        # The link may have been paid a moment ago. Fall through to the poll
+        # rather than guessing -- Razorpay's answer outranks ours.
+        audit.log("SYSTEM", "payment_link_cancel_failed",
+                  {"order_id": order["id"], "error": str(exc)}, status="failed")
+        return status(order_id)
+
+    audit.log("USER", "payment_abandoned", {
+        "order_id": order["id"],
+        "payment_link_id": order["payment_link_id"],
+        "attempt": order["attempts"],
+    }, status="failed")
+    return status(order_id)
 
 
 @app.get("/audit")

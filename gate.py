@@ -135,6 +135,16 @@ def get_order(order_id: str) -> dict[str, Any] | None:
     return _ORDERS.get((order_id or "").strip().upper())
 
 
+def all_orders() -> list[dict[str, Any]]:
+    """Every order drafted this session, newest first.
+
+    Blocked and cancelled orders are included on purpose: an order history that
+    only lists the successes is not a history, and the ones the gate refused are
+    exactly the ones a shopper would want to see.
+    """
+    return list(reversed(_ORDERS.values()))
+
+
 def approve_order(order_id: str) -> tuple[dict[str, Any] | None, str | None]:
     """Record the human approval for one specific order.
 

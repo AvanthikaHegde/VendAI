@@ -86,6 +86,9 @@ button { font: inherit; color: inherit; }
   border: 1px solid var(--border); border-radius: 999px; padding: 3px 12px;
 }
 .mode-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); flex: none; }
+/* Misconfigured keys are a fault, not a mode -- say so in the status colour. */
+.mode-pill.error { color: var(--danger); border-color: var(--danger); }
+.mode-pill.error .dot { background: var(--danger); }
 
 /* --- layout --------------------------------------------------------------- */
 .workspace {
@@ -464,7 +467,7 @@ details.why[open] summary::after { transform: rotate(270deg); }
 
 const state = {
   limits: null, product: null, order: null,
-  lastSeq: 0, poller: null, thinking: null,
+  lastSeq: 0, poller: null, pollStartedAt: 0, thinking: null,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -872,30 +875,94 @@ async function startPayment() {
   card.appendChild(link);
   card.appendChild(el('p', 'meta', 'Attempt ' + state.order.attempts + ' of '
     + state.limits.max_payment_attempts + ' \u00b7 order ' + state.order.id));
+  const actions = el('div', 'card-actions');
+  actions.appendChild(abandonButton());
+  card.appendChild(actions);
   state.paymentCard = card;
   scrollThread();
   pollStatus();
 }
 
+/* Polling is a real network call once test keys are configured, so it starts
+   attentive, slows down, and eventually stops rather than hammering the API for
+   as long as the tab happens to stay open. */
+const POLL_FAST_MS = 2000;
+const POLL_SLOW_MS = 6000;
+const POLL_FAST_FOR_MS = 30000;
+const POLL_GIVE_UP_MS = 300000;
+
 function pollStatus() {
-  clearInterval(state.poller);
-  state.poller = setInterval(checkStatus, 2000);
+  stopPolling();
+  state.pollStartedAt = Date.now();
+  schedulePoll();
+}
+
+function stopPolling() {
+  clearTimeout(state.poller);
+  state.poller = null;
+}
+
+function schedulePoll() {
+  const elapsed = Date.now() - state.pollStartedAt;
+  state.poller = setTimeout(checkStatus, elapsed < POLL_FAST_FOR_MS ? POLL_FAST_MS : POLL_SLOW_MS);
 }
 
 async function checkStatus() {
   const data = await api('/orders/' + state.order.id + '/status');
-  if (!data.ok || !data.order) return;
+  if (!data.ok || !data.order) { schedulePoll(); return; }
   state.order = data.order;
   refreshAudit();
   if (state.order.status === 'paid') {
-    clearInterval(state.poller);
+    stopPolling();
     renderSuccess(data);
     refreshOrders();
   } else if (state.order.status === 'failed') {
-    clearInterval(state.poller);
+    stopPolling();
     renderFailure(data);
     refreshOrders();
+  } else if (Date.now() - state.pollStartedAt > POLL_GIVE_UP_MS) {
+    // Nothing is wrong and nothing was charged -- the shopper simply hasn't
+    // finished. Stop asking, and let them say which it was.
+    stopPolling();
+    renderStalled();
+  } else {
+    schedulePoll();
   }
+}
+
+function renderStalled() {
+  const card = paymentCard();
+  card.innerHTML = '';
+  card.appendChild(el('h3', null, 'Still waiting for payment'));
+  card.appendChild(el('p', 'notice', 'No charge has been made. The payment page is still open.'));
+  const actions = el('div', 'card-actions');
+  const again = el('button', 'btn primary', 'Check again');
+  again.type = 'button';
+  again.addEventListener('click', () => { renderSteps(1); pollStatus(); });
+  actions.appendChild(again);
+  actions.appendChild(abandonButton());
+  card.appendChild(actions);
+  scrollThread();
+}
+
+/* On the real API a failed payment leaves the link open for another try, so the
+   shopper telling us they gave up is what resolves the order. The backend
+   cancels the link and the gate -- not this button -- decides about a retry. */
+function abandonButton() {
+  const button = el('button', 'btn', 'I couldn’t complete this payment');
+  button.type = 'button';
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    stopPolling();
+    const data = await post('/orders/' + state.order.id + '/payment/abandon');
+    refreshAudit();
+    if (!data.ok || !data.order) { button.disabled = false; pollStatus(); return; }
+    state.order = data.order;
+    refreshOrders();
+    if (state.order.status === 'paid') renderSuccess(data);
+    else renderFailure(data);
+  });
+  return button;
 }
 
 function renderSuccess(data) {
@@ -909,7 +976,7 @@ function renderSuccess(data) {
   const body = el('div');
   body.appendChild(el('h3', null, 'Payment successful'));
   body.appendChild(el('div', 'amount', state.order.total_display + ' \u00b7 '
-    + state.order.product_name + ' \u00d7 ' + state.order.quantity));
+    + state.order.summary));
   body.appendChild(el('p', 'meta', 'Order ' + state.order.id));
   const actions = el('div', 'card-actions');
   const again = el('button', 'btn', 'Continue shopping');
@@ -981,6 +1048,8 @@ const STEP_LABELS = {
   gate_blocked: ['Blocked', 'blocked'],
   payment_link_created: ['Payment link created', 'done'],
   status_polled: ['Waiting for payment', 'waiting'],
+  payment_abandoned: ['You stopped the payment', 'failed'],
+  payment_link_cancel_failed: ['Could not cancel the link', 'failed'],
   payment_succeeded: ['Payment successful', 'done'],
   payment_failed: ['Payment failed', 'failed'],
   payment_link_failed: ['Payment provider unreachable', 'failed'],
@@ -1074,9 +1143,15 @@ function ordersVisible() {
 }
 
 async function refreshOrders() {
-  const data = await api('/orders');
+  // A failed fetch must not leave the panel silently blank -- an empty list and
+  // a broken request look identical to the shopper otherwise.
+  const data = await api('/orders').catch(() => null);
   const list = $('orders');
   list.innerHTML = '';
+  if (!data || !data.orders) {
+    list.appendChild(el('p', 'meta', 'Could not load your orders just now.'));
+    return;
+  }
   $('order-count').textContent = data.orders.length ? '(' + data.orders.length + ')' : '';
 
   if (!data.orders.length) {
@@ -1194,9 +1269,16 @@ document.querySelectorAll('.chip').forEach((chip) => {
 async function init() {
   const config = await api('/config');
   state.limits = config.limits;
-  $('mode-label').textContent = config.mock_mode
-    ? 'Test mode \u00b7 mock payments'
-    : 'Test mode \u00b7 Razorpay test keys';
+  if (config.payments_error) {
+    // Reported, not hidden: a key the backend refuses must not read as a mode.
+    $('mode-label').textContent = 'Payments unavailable \u00b7 check keys';
+    $('mode-label').closest('.mode-pill').classList.add('error');
+    $('mode-label').title = config.payments_error;
+  } else {
+    $('mode-label').textContent = config.mock_mode
+      ? 'Test mode \u00b7 mock payments'
+      : 'Test mode \u00b7 Razorpay test keys';
+  }
   $('chat-input').placeholder = 'Try: wireless headphones under \u20b93,000';
   refreshAudit();
   setInterval(refreshAudit, 2500);

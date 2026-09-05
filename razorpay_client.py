@@ -1,4 +1,4 @@
-"""Razorpay Payment Links (test mode) behind a two-function interface.
+"""Razorpay Payment Links (test mode) behind a create / fetch / cancel interface.
 
 If RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET are absent the module runs in mock
 mode: it mints plink_MOCK_... links whose status the demo drives by hand. The
@@ -98,6 +98,42 @@ def fetch_payment_link(link_id: str) -> dict[str, Any]:
     return {
         "id": body["id"],
         "status": body.get("status", "created"),
+        "short_url": body.get("short_url"),
+        "amount": body.get("amount"),
+    }
+
+
+def cancel_payment_link(link_id: str) -> dict[str, Any]:
+    """Cancel a link the shopper could not complete, so the status resolves.
+
+    This exists because of an asymmetry in the real API: a *successful* payment
+    flips the link to `paid`, but a *failed* one leaves it `created` so the
+    shopper can try again on the same page. Nothing upstream would ever resolve
+    that, and the retry cap would never be reached. This app counts attempts
+    itself and mints a fresh link per attempt, so an abandoned link is already
+    dead to us -- cancelling it is what turns "the shopper gave up" into a
+    terminal status the normal polling path knows how to handle.
+    """
+    credentials = _credentials()
+    if credentials is None or link_id.startswith("plink_MOCK_"):
+        return force_mock_status(link_id, "cancelled")
+
+    try:
+        response = requests.post(
+            f"{API_BASE}/payment_links/{link_id}/cancel", auth=credentials, timeout=TIMEOUT_SECONDS
+        )
+    except requests.RequestException as exc:
+        raise RazorpayError(f"Could not reach Razorpay: {type(exc).__name__}") from exc
+
+    if response.status_code >= 400:
+        # Most often: the link is already paid or already cancelled. Either way
+        # the caller re-polls, so the real status wins over this one's opinion.
+        raise RazorpayError(_error_message(response))
+
+    body = response.json()
+    return {
+        "id": body["id"],
+        "status": body.get("status", "cancelled"),
         "short_url": body.get("short_url"),
         "amount": body.get("amount"),
     }
